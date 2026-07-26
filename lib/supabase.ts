@@ -42,6 +42,13 @@ interface MockProjection {
   created_at: string;
 }
 
+interface MockAnalysis {
+  id: string;
+  startup_id: string;
+  analysis_data: any;
+  created_at: string;
+}
+
 interface MockChecklistItem {
   id: string;
   startup_id: string;
@@ -296,6 +303,48 @@ export const getChecklist = async (startupId: string) => {
     .select('*')
     .eq('startup_id', startupId);
   return { data: data || [], error };
+};
+
+// --- AI ANALYSIS ---
+
+export const getAnalysis = async (startupId: string) => {
+  if (!supabase) {
+    const analyses = getStorageItem<MockAnalysis[]>('analyses', []);
+    const filtered = analyses.filter(a => a.startup_id === startupId);
+    return { data: filtered, error: null };
+  }
+
+  const { data, error } = await supabase
+    .from('ai_analysis')
+    .select('*')
+    .eq('startup_id', startupId)
+    .order('created_at', { ascending: false });
+  return { data: data || [], error };
+};
+
+export const saveAnalysis = async (startupId: string, analysisData: any) => {
+  if (!supabase) {
+    const analyses = getStorageItem<MockAnalysis[]>('analyses', []);
+    const filtered = analyses.filter(a => a.startup_id !== startupId);
+    const newAnalysis: MockAnalysis = {
+      id: Math.random().toString(36).substr(2, 9),
+      startup_id: startupId,
+      analysis_data: analysisData,
+      created_at: new Date().toISOString(),
+    };
+    filtered.unshift(newAnalysis);
+    setStorageItem('analyses', filtered);
+    return { data: newAnalysis, error: null };
+  }
+
+  await supabase.from('ai_analysis').delete().eq('startup_id', startupId);
+
+  const { data, error } = await supabase
+    .from('ai_analysis')
+    .insert([{ startup_id: startupId, analysis_data: analysisData }])
+    .select()
+    .single();
+  return { data, error };
 };
 
 export const updateChecklist = async (startupId: string, itemKey: string, isCompleted: boolean) => {

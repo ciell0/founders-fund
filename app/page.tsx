@@ -1,8 +1,209 @@
 // app/page.tsx
+"use client";
+
 import Link from "next/link";
-import { TrendingUp, Sparkles, ShieldCheck, Wallet, ArrowRight, BarChart3 } from "lucide-react";
+import { useState } from "react";
+import { TrendingUp, Sparkles, ShieldCheck, Wallet, ArrowRight, BarChart3, ChevronDown, BookOpen, PlayCircle } from "lucide-react";
+
+const features = [
+  {
+    id: "projection",
+    icon: BarChart3,
+    title: "AI Pitch Deck Projection",
+    description:
+      "Buat proyeksi keuangan 3 tahun (Revenue, COGS, Opex, BEP) instan berbasis AI. Cukup masukkan nama, deskripsi, harga, dan target penjualan. Hasil siap salin ke Pitch Deck!",
+    keyCapabilities: [
+      "Proyeksi revenue 3 tahun",
+      "Estimasi COGS dan Opex",
+      "Hitung Break-Even Point",
+    ],
+    workflow: [
+      "Masukkan unit economics dasar startup",
+      "Biarkan AI menghasilkan skenario finansial",
+      "Bandingkan hasil untuk mempersiapkan pitch deck",
+    ],
+    realExamples: [
+      "Startup edukasi digital dengan harga langganan bulanan",
+      "Marketplace lokal dengan target transaksional yang jelas",
+    ],
+    bestPractices: [
+      "Gunakan asumsi yang realistis untuk pertumbuhan",
+      "Sertakan margin yang mencerminkan biaya operasional",
+    ],
+    commonMistakes: [
+      "Menganggap revenue tumbuh terlalu cepat tanpa bukti",
+      "Mengabaikan biaya tetap yang akan muncul seiring ekspansi",
+    ],
+    resources: [
+      { label: "Placeholder YouTube tutorial", type: "video" },
+      { label: "Placeholder article", type: "article" },
+    ],
+  },
+  {
+    id: "runway",
+    icon: Wallet,
+    title: "Runway & Grant Tracker",
+    description:
+      "Pantau burn rate bulanan dan hitung sisa runway (masa aktif dana) secara presisi. Catat hibah, investasi, dan pengeluaran operasional dalam ledger transaksi.",
+    keyCapabilities: [
+      "Pelacakan burn rate bulanan",
+      "Estimasi runway berdasarkan saldo kas",
+      "Pencatatan transaksi dan hibah",
+    ],
+    workflow: [
+      "Catat semua pemasukan dan pengeluaran",
+      "Bandingkan kas aktual dengan target operasional",
+      "Tentukan kapan startup butuh tambahan pendanaan",
+    ],
+    realExamples: [
+      "Tim yang menerima hibah lomba dan ingin menjaga runway 9 bulan",
+      "Startup yang mengatur belanja tim dan infrastruktur secara lebih disiplin",
+    ],
+    bestPractices: [
+      "Pisahkan dana operasional dan dana pengembangan",
+      "Tinjau cash flow minimal setiap minggu",
+    ],
+    commonMistakes: [
+      "Menganggap saldo akhir sama dengan runway yang aman",
+      "Tidak mengalokasikan dana untuk biaya tak terduga",
+    ],
+    resources: [
+      { label: "Placeholder YouTube tutorial", type: "video" },
+      { label: "Placeholder article", type: "article" },
+    ],
+  },
+  {
+    id: "literacy",
+    icon: ShieldCheck,
+    title: "Literacy Checklist",
+    description:
+      "Panduan praktis pengelolaan keuangan & legalitas rintisan (Equity Split, Pemisahan Rekening Tim, NIB, Dana Darurat). Centang, simpan kemajuan, dan bangun fondasi bisnis sehat.",
+    keyCapabilities: [
+      "Checklist kesiapan finansial",
+      "Peta tindakan legal dan operasional",
+      "Pantau langkah yang sudah selesai",
+    ],
+    workflow: [
+      "Lihat checklist yang relevan dengan tahap startup",
+      "Pilih prioritas yang paling berdampak",
+      "Tandai progres dan lanjutkan ke langkah berikutnya",
+    ],
+    realExamples: [
+      "Tim yang baru membagi equity sebelum ada investor",
+      "Startup yang ingin memastikan legalitas sebelum membuka pendanaan",
+    ],
+    bestPractices: [
+      "Tulis keputusan secara jelas dan terdokumentasi",
+      "Tinjau checklist secara berkala saat startup berkembang",
+    ],
+    commonMistakes: [
+      "Menunda pembagian tanggung jawab finansial",
+      "Mengabaikan dokumen dasar untuk legalitas dan kontrol internal",
+    ],
+    resources: [
+      { label: "Placeholder YouTube tutorial", type: "video" },
+      { label: "Placeholder article", type: "article" },
+    ],
+  },
+];
+
+const learningItems = [
+  {
+    id: "burn-rate",
+    title: "Burn Rate",
+    shortText: "Memahami seberapa cepat startup menghabiskan kas untuk menjalankan operasi.",
+    lesson: [
+      "Burn rate adalah biaya bulanan yang harus ditutup oleh saldo kas yang tersedia.",
+      "Semakin tinggi burn rate, semakin cepat startup harus mencari pendanaan tambahan.",
+    ],
+  },
+  {
+    id: "runway",
+    title: "Runway",
+    shortText: "Mengukur berapa lama startup bisa bertahan sebelum saldo kas habis.",
+    lesson: [
+      "Runway biasanya dihitung dari saldo kas dibagi rata-rata burn rate bulanan.",
+      "Runway yang aman memberi tim waktu cukup untuk mencapai milestone berikutnya.",
+    ],
+  },
+  {
+    id: "cash-flow",
+    title: "Cash Flow",
+    shortText: "Melihat aliran masuk dan keluar kas agar operasi tetap sehat.",
+    lesson: [
+      "Cash flow yang sehat membantu startup menghindari kekurangan dana saat beban operasional meningkat.",
+      "Pantau kas bulanan untuk melihat kapan startup perlu menyesuaikan prioritas belanja.",
+    ],
+  },
+  {
+    id: "revenue-projection",
+    title: "Revenue Projection",
+    shortText: "Membuat perkiraan revenue berdasarkan asumsi pasar dan unit economics.",
+    lesson: [
+      "Revenue projection membantu founder menilai apakah model bisnis cukup kuat untuk tumbuh.",
+      "Gunakan skenario konservatif, moderat, dan agresif untuk memetakan risiko.",
+    ],
+  },
+  {
+    id: "break-even",
+    title: "Break-even Point",
+    shortText: "Menentukan titik ketika pendapatan menutup biaya tetap dan variabel.",
+    lesson: [
+      "Break-even point memberi sinyal kapan produk atau layanan mulai menjadi sustainable.",
+      "Semakin rendah break-even point, semakin cepat startup bisa stabil secara finansial.",
+    ],
+  },
+  {
+    id: "unit-economics",
+    title: "Unit Economics",
+    shortText: "Memahami profitabilitas per pelanggan atau per transaksi.",
+    lesson: [
+      "Unit economics membantu menilai apakah model bisnis dapat berkembang tanpa merugi.",
+      "Perhatikan contribution margin dan biaya akuisisi pelanggan secara cermat.",
+    ],
+  },
+  {
+    id: "equity-split",
+    title: "Equity Split",
+    shortText: "Membagi kepemilikan secara adil agar keputusan dan tanggung jawab jelas.",
+    lesson: [
+      "Equity split sebaiknya mencerminkan kontribusi, risiko, dan komitmen jangka panjang tim.",
+      "Dokumentasikan keputusan secara jelas dari awal untuk menghindari konflik.",
+    ],
+  },
+  {
+    id: "cap-table",
+    title: "Cap Table",
+    shortText: "Menyusun daftar pemegang saham dan struktur ownership secara sistematis.",
+    lesson: [
+      "Cap table membantu founder melihat dampak pendanaan baru terhadap kepemilikan masing-masing pihak.",
+      "Jaga cap table tetap rapi agar keputusan investasi tidak membingungkan.",
+    ],
+  },
+  {
+    id: "emergency-fund",
+    title: "Emergency Fund",
+    shortText: "Menyisihkan cadangan kas untuk situasi tak terduga yang mengganggu operasional.",
+    lesson: [
+      "Dana darurat bisa menjadi penyangga ketika pendapatan turun atau biaya muncul tiba-tiba.",
+      "Cadangan ini membantu startup tetap berjalan meski ada gangguan bisnis.",
+    ],
+  },
+  {
+    id: "business-legality",
+    title: "Business Legality",
+    shortText: "Memastikan dokumen dan struktur bisnis sesuai kebutuhan operasional dan pendanaan.",
+    lesson: [
+      "Legalitas yang baik memudahkan startup beroperasi secara sah dan lebih siap saat mencari mitra atau investor.",
+      "Mulai dari dokumen dasar, izin, hingga pencatatan keuangan internal yang terdokumentasi.",
+    ],
+  },
+];
 
 export default function LandingPage() {
+  const [openFeature, setOpenFeature] = useState<string | null>(null);
+  const [openLearning, setOpenLearning] = useState<string | null>(null);
+
   return (
     <div className="relative min-h-screen bg-zinc-950 overflow-hidden font-sans">
       {/* Background Decorative Glows */}
@@ -20,11 +221,6 @@ export default function LandingPage() {
               FoundersFund
             </span>
           </div>
-
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-            <a href="#features" className="hover:text-violet-400 transition-colors">Fitur</a>
-            <a href="#about" className="hover:text-violet-400 transition-colors">Tentang Lomba</a>
-          </nav>
 
           <div className="flex items-center gap-4">
             <Link 
@@ -148,38 +344,155 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="rounded-2xl border border-zinc-850 bg-zinc-900/30 p-8 glass-panel-hover">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-400 mb-6">
-                <BarChart3 className="h-5 w-5" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">AI Pitch Deck Projection</h3>
-              <p className="text-zinc-400 text-sm leading-relaxed">
-                Buat proyeksi keuangan 3 tahun (Revenue, COGS, Opex, BEP) instan berbasis AI. Cukup masukkan nama, deskripsi, harga, dan target penjualan. Hasil siap salin ke Pitch Deck!
-              </p>
-            </div>
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              const isOpen = openFeature === feature.id;
 
-            {/* Feature 2 */}
-            <div className="rounded-2xl border border-zinc-850 bg-zinc-900/30 p-8 glass-panel-hover">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-400 mb-6">
-                <Wallet className="h-5 w-5" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Runway & Grant Tracker</h3>
-              <p className="text-zinc-400 text-sm leading-relaxed">
-                Pantau burn rate bulanan dan hitung sisa runway (masa aktif dana) secara presisi. Catat hibah, investasi, dan pengeluaran operasional dalam ledger transaksi.
-              </p>
-            </div>
+              return (
+                <div key={feature.id} className="rounded-2xl border border-zinc-850 bg-zinc-900/30 p-8 glass-panel-hover">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-400 mb-6">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+                  <p className="text-zinc-400 text-sm leading-relaxed">{feature.description}</p>
 
-            {/* Feature 3 */}
-            <div className="rounded-2xl border border-zinc-850 bg-zinc-900/30 p-8 glass-panel-hover">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-400 mb-6">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Literacy Checklist</h3>
-              <p className="text-zinc-400 text-sm leading-relaxed">
-                Panduan praktis pengelolaan keuangan & legalitas rintisan (Equity Split, Pemisahan Rekening Tim, NIB, Dana Darurat). Centang, simpan kemajuan, dan bangun fondasi bisnis sehat.
-              </p>
-            </div>
+                  <div className="mt-5">
+                    <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Key capabilities</h4>
+                    <ul className="mt-2 space-y-2 text-sm text-zinc-300">
+                      {feature.keyCapabilities.map((item) => (
+                        <li key={item} className="flex items-start gap-2">
+                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-violet-400" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setOpenFeature(isOpen ? null : feature.id)}
+                    className="mt-6 inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950/70 px-3 py-2 text-sm font-medium text-zinc-300 transition-all duration-200 hover:border-violet-500/30 hover:text-white"
+                  >
+                    Learn More
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {isOpen ? (
+                    <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-sm text-zinc-300 space-y-4">
+                      <div>
+                        <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Workflow</h4>
+                        <ol className="mt-2 space-y-2">
+                          {feature.workflow.map((item) => (
+                            <li key={item} className="flex gap-2">
+                              <span className="text-violet-400">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+
+                      <div>
+                        <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Real examples</h4>
+                        <ul className="mt-2 space-y-2">
+                          {feature.realExamples.map((item) => (
+                            <li key={item} className="flex gap-2">
+                              <span className="text-emerald-400">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Best practices</h4>
+                        <ul className="mt-2 space-y-2">
+                          {feature.bestPractices.map((item) => (
+                            <li key={item} className="flex gap-2">
+                              <span className="text-amber-400">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Common mistakes</h4>
+                        <ul className="mt-2 space-y-2">
+                          {feature.commonMistakes.map((item) => (
+                            <li key={item} className="flex gap-2">
+                              <span className="text-rose-400">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Educational resources</h4>
+                        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                          {feature.resources.map((resource) => (
+                            <a key={resource.label} href="#" className="inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-300 hover:border-violet-500/30 hover:text-white">
+                              {resource.type === "video" ? <PlayCircle className="h-4 w-4 text-violet-400" /> : <BookOpen className="h-4 w-4 text-violet-400" />}
+                              <span>{resource.label}</span>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 border-t border-zinc-900 bg-zinc-950/40 relative">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <h2 className="text-3xl font-bold text-white tracking-tight sm:text-4xl">
+              Financial Learning Center
+            </h2>
+            <p className="mt-4 text-zinc-400 text-sm sm:text-base">
+              Jelajahi konsep penting finansial startup melalui pelajaran singkat yang siap dipakai saat membangun dan mempresentasikan bisnis.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {learningItems.map((item) => {
+              const isOpen = openLearning === item.id;
+              return (
+                <div key={item.id} className="rounded-2xl border border-zinc-850 bg-zinc-900/30 p-6 glass-panel-hover">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">{item.title}</h3>
+                      <p className="mt-2 text-sm text-zinc-400">{item.shortText}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setOpenLearning(isOpen ? null : item.id)}
+                      className="rounded-full border border-zinc-800 bg-zinc-950/70 p-2 text-zinc-300 transition-all duration-200 hover:border-violet-500/30 hover:text-white"
+                    >
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+                    </button>
+                  </div>
+
+                  {isOpen ? (
+                    <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-sm text-zinc-300">
+                      <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Mini lesson</h4>
+                      <ul className="mt-3 space-y-2">
+                        {item.lesson.map((entry) => (
+                          <li key={entry} className="flex gap-2">
+                            <span className="text-violet-400">•</span>
+                            <span>{entry}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

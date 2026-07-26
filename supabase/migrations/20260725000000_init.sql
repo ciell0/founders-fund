@@ -39,11 +39,20 @@ CREATE TABLE IF NOT EXISTS checklist_items (
     UNIQUE (startup_id, item_key)
 );
 
+-- 5. Create ai_analysis table
+CREATE TABLE IF NOT EXISTS ai_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    startup_id UUID REFERENCES startups(id) ON DELETE CASCADE,
+    analysis_data JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Enable Row Level Security (RLS) on all tables
 ALTER TABLE startups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE financial_projections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE checklist_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_analysis ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies mapped to auth.uid()
 
@@ -77,6 +86,16 @@ CREATE POLICY "Users can manage projections of their own startups"
 CREATE POLICY "Users can manage checklist items of their own startups" 
     ON checklist_items 
     FOR ALL 
+    USING (
+        startup_id IN (
+            SELECT id FROM startups WHERE user_id = auth.uid()
+        )
+    );
+
+-- AI analysis policies
+CREATE POLICY "Users can manage ai analysis of their own startups"
+    ON ai_analysis
+    FOR ALL
     USING (
         startup_id IN (
             SELECT id FROM startups WHERE user_id = auth.uid()

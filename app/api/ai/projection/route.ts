@@ -1,10 +1,10 @@
-// app/api/generate-projections/route.ts
 import { NextResponse } from 'next/server';
 import { generateProjection } from '@/lib/ai/service';
 
 export async function POST(req: Request) {
   try {
-    const { name, industry, price, targetTransactions } = await req.json();
+    const body = await req.json();
+    const { name, industry, price, targetTransactions } = body || {};
 
     if (!name || !industry || !price || !targetTransactions) {
       return NextResponse.json({ error: 'Parameter input tidak lengkap.' }, { status: 400 });
@@ -18,8 +18,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(result);
-  } catch (err: any) {
-    console.error('Projections generator handler crash:', err);
-    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('AI projection handler crash:', error);
+    return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
   }
 }
